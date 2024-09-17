@@ -2,8 +2,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const app = new PIXI.Application({
         width: 1200,
         height: 800,
-        backgroundColor: 0x000000
+        backgroundColor: 0x000000,
+        cursor: 'none'
     });
+
+    
     document.body.appendChild(app.view);
 
     
@@ -97,6 +100,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Configuración inicial del jugador (idle por defecto)
         let player = idleAnimation;
         let companion = companionAnimation
+        let crossair =PIXI.Sprite.from('./img/Crossair/Crossair.png');
         score = 0;
         life = 999999;
         invencible = false;
@@ -104,6 +108,7 @@ document.addEventListener('DOMContentLoaded', function() {
         player.y = app.screen.height / 2;
         player.anchor.set(0.5);
         companion.anchor.set(0.5);
+        crossair.anchor.set(0.5);
         companion.x=player.x-15;
         companion.y=player.y-15;
         player.animationSpeed = 0.2; // Velocidad de la animación
@@ -112,12 +117,27 @@ document.addEventListener('DOMContentLoaded', function() {
         companion.play();
         app.stage.addChild(player);//agrego personaje y compañero
         app.stage.addChild(companion);
+        app.stage.addChild(crossair);
 
+        //add crossair
+
+        // Enable interactivity!
+        app.stage.interactive =true;
+
+        app.stage.on("pointermove",moveCrossair);
+        
         // Variables para el movimiento
         let dx = 0;
         let dy = 0;
         const speed = 1;
 
+        //crossair control
+
+        function moveCrossair(e){
+            let position = e.data.global //e contiene toda la infodel evento de movimiento de cursor
+            crossair.x=position.x;
+            crossair.y=position.y;
+        }
         // Cambiar la animación según la dirección
         function changeAnimation(newAnimation) {
             if (player !== newAnimation) {
@@ -319,9 +339,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 frameCounter+=0.05;
                 player.x += dx;
                 player.y += dy;
-                //companion.x += dx;
-                //companion.y += dy;
-
 
                 // Evitar que el jugador salga de los límites
                 if (player.x < 0) player.x = 0;
