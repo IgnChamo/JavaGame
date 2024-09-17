@@ -20,4 +20,5 @@ class Coin {
         // Ajustar el radio para la colisión
         return distance < this.radius + player.width / 2; // Ajusta según el tamaño del jugador
     }
+    
 }

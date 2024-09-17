@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const app = new PIXI.Application({
         width: 1200,
         height: 800,
@@ -75,6 +75,8 @@ document.addEventListener('DOMContentLoaded', function() {
         // Configuración inicial del jugador (idle por defecto)
         let player = idleAnimation;
         score = 0;
+        life = 999999;
+        invencible = false;
         player.x = app.screen.width / 2;
         player.y = app.screen.height / 2;
         player.anchor.set(0.5);
@@ -97,7 +99,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 newAnimation.x = player.x; // Mantener la posición actual
                 newAnimation.y = player.y; // Mantener la posición actual
                 newAnimation.anchor.set(0.5);
-                newAnimation.animationSpeed = 0.2; // Ajustar según la velocidad deseada
+                newAnimation.animationSpeed = 0.1; // Ajustar según la velocidad deseada
                 newAnimation.play(); // Reproduce la nueva animación
                 app.stage.addChild(newAnimation); // Añadir al escenario
 
@@ -147,7 +149,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Crear enemigos
         const enemies = [];
-        const enemySpeed = 0.2;
+        let enemySpeed = 0.2;
+        let explosionStartTime = null;
+        const explosionDuration = 250; // Duración de la explosión en milisegundos
+        let isExploding = false;
 
         function createEnemy() {
             const enemy = {
@@ -198,12 +203,41 @@ document.addEventListener('DOMContentLoaded', function() {
                 const distance = Math.sqrt(
                     (player.x - enemy.x) ** 2 + (player.y - enemy.y) ** 2
                 );
-                if (distance < 10 + enemy.radius) { // Ajustar si es necesario
-                    player.alive = false;
-                    alert("¡Colisión con un enemigo! El juego ha terminado.");
-                    document.location.reload();
+                if (distance < 10 + enemy.radius && !invencible) { // Ajustar si es necesario
+                    if(life < 1){
+                        player.alive = false;
+                        alert("¡Colisión con un enemigo! El juego ha terminado.");
+                        document.location.reload();
+                    }else{
+                        life--;
+                        invencible = true;
+                        // Iniciar la explosión
+                        explosionStartTime = Date.now();
+                        isExploding = true;
+                    }
                 }
             });
+        }
+
+        function updateExplosion(x,y) {
+            const radio = 100;
+            if (isExploding) {
+                const elapsedTime = Date.now() - explosionStartTime;
+                if (elapsedTime < explosionDuration) {
+                    // Durante la explosión
+                    enemies.forEach(enemy => {
+                        if(Math.abs(enemy.x - x) < radio && Math.abs(enemy.y - y) < radio)
+                            {enemy.speed = -1;} // Velocidad negativa durante la explosión
+                    });
+                } else {
+                    // Después de la explosión
+                    enemies.forEach(enemy => {
+                        enemy.speed = 0.2; // Velocidad positiva después de la explosión
+                    });
+                    isExploding = false;
+                    invencible = false;
+                }
+            }
         }
 
         // Crear monedas
@@ -239,10 +273,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Crear enemigos y monedas
         for (let i = 0; i < 5; i++) {
-            
             createCoin();
         }
-        for(let i = 0; i < 50; i++){
+        for (let i = 0; i < 50; i++) {
             createEnemy();
         }
 
@@ -251,9 +284,6 @@ document.addEventListener('DOMContentLoaded', function() {
             if (player.alive !== false) {
                 player.x += dx;
                 player.y += dy;
-
-                // Imprimir valores para depuración
-                //console.log(`Player position: (${player.x}, ${player.y}), Movement: (${dx}, ${dy})`);
 
                 // Evitar que el jugador salga de los límites
                 if (player.x < 0) player.x = 0;
@@ -264,6 +294,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 moveEnemies();
                 checkPlayerCollision();
                 collectCoins();
+                updateExplosion(player.x,player.y); // Actualizar la explosión
             }
         });
 
