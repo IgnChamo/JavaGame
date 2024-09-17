@@ -1,0 +1,274 @@
+document.addEventListener('DOMContentLoaded', function() {
+    const app = new PIXI.Application({
+        width: 1200,
+        height: 800,
+        backgroundColor: 0x000000
+    });
+    document.body.appendChild(app.view);
+
+    const loader = new PIXI.Loader();
+    loader
+        .add('idle_0', './img/iddle_0.png')
+        .add('idle_1', './img/iddle_1.png')
+        .add('idle_2', './img/iddle_2.png')
+        .add('idle_3', './img/iddle_3.png')
+        .add('idle_4', './img/iddle_4.png')
+        .add('idle_5', './img/iddle_5.png')
+        .add('idle_6', './img/iddle_6.png')
+        .add('up_0', './img/up_0.png')
+        .add('up_1', './img/up_1.png')
+        .add('up_2', './img/up_2.png')
+        .add('up_3', './img/up_3.png')
+        .add('down_0', './img/down_0.png')
+        .add('down_1', './img/down_1.png')
+        .add('down_2', './img/down_2.png')
+        .add('down_3', './img/down_3.png')
+        .add('left_0', './img/left_0.png')
+        .add('left_1', './img/left_1.png')
+        .add('right_0', './img/right_0.png')
+        .add('right_1', './img/right_1.png')
+        .load(setup);
+
+    function setup(loader, resources) {
+        // Crear los arrays de texturas para las animaciones
+        const idleTextures = [
+            PIXI.Texture.from(resources.idle_0.url),
+            PIXI.Texture.from(resources.idle_1.url),
+            PIXI.Texture.from(resources.idle_2.url),
+            PIXI.Texture.from(resources.idle_3.url),
+            PIXI.Texture.from(resources.idle_4.url),
+            PIXI.Texture.from(resources.idle_5.url),
+            PIXI.Texture.from(resources.idle_6.url),
+        ];
+
+        const upTextures = [
+            PIXI.Texture.from(resources.up_0.url),
+            PIXI.Texture.from(resources.up_1.url),
+            PIXI.Texture.from(resources.up_2.url),
+            PIXI.Texture.from(resources.up_3.url),
+        ];
+
+        const downTextures = [
+            PIXI.Texture.from(resources.down_0.url),
+            PIXI.Texture.from(resources.down_1.url),
+            PIXI.Texture.from(resources.down_2.url),
+            PIXI.Texture.from(resources.down_3.url),
+        ];
+
+        const leftTextures = [
+            PIXI.Texture.from(resources.left_0.url),
+            PIXI.Texture.from(resources.left_1.url),
+        ];
+
+        const rightTextures = [
+            PIXI.Texture.from(resources.right_0.url),
+            PIXI.Texture.from(resources.right_1.url),
+        ];
+
+        // Crear las animaciones usando AnimatedSprite
+        const idleAnimation = new PIXI.AnimatedSprite(idleTextures);
+        const upAnimation = new PIXI.AnimatedSprite(upTextures);
+        const downAnimation = new PIXI.AnimatedSprite(downTextures);
+        const leftAnimation = new PIXI.AnimatedSprite(leftTextures);
+        const rightAnimation = new PIXI.AnimatedSprite(rightTextures);
+
+        // Configuración inicial del jugador (idle por defecto)
+        let player = idleAnimation;
+        score = 0;
+        player.x = app.screen.width / 2;
+        player.y = app.screen.height / 2;
+        player.anchor.set(0.5);
+        player.animationSpeed = 0.2; // Velocidad de la animación
+        player.play(); // Reproduce la animación
+        app.stage.addChild(player);
+
+        // Variables para el movimiento
+        let dx = 0;
+        let dy = 0;
+        const speed = 1;
+
+        // Cambiar la animación según la dirección
+        function changeAnimation(newAnimation) {
+            if (player !== newAnimation) {
+                player.stop(); // Detener la animación actual
+                app.stage.removeChild(player); // Eliminar la animación actual del escenario
+
+                // Asignar la nueva animación
+                newAnimation.x = player.x; // Mantener la posición actual
+                newAnimation.y = player.y; // Mantener la posición actual
+                newAnimation.anchor.set(0.5);
+                newAnimation.animationSpeed = 0.2; // Ajustar según la velocidad deseada
+                newAnimation.play(); // Reproduce la nueva animación
+                app.stage.addChild(newAnimation); // Añadir al escenario
+
+                // Cambiar el jugador a la nueva animación
+                player = newAnimation;
+            }
+        }
+
+        // Manejo de las teclas
+        function handleKeyDown(e) {
+            switch (e.key) {
+                case 'w':
+                    dy = -speed;
+                    changeAnimation(upAnimation); // Cambiar a la animación de arriba
+                    break;
+                case 's':
+                    dy = speed;
+                    changeAnimation(downAnimation); // Cambiar a la animación de abajo
+                    break;
+                case 'a':
+                    dx = -speed;
+                    changeAnimation(leftAnimation); // Cambiar a la animación de izquierda
+                    break;
+                case 'd':
+                    dx = speed;
+                    changeAnimation(rightAnimation); // Cambiar a la animación de derecha
+                    break;
+            }
+        }
+
+        function handleKeyUp(e) {
+            switch (e.key) {
+                case 'w':
+                case 's':
+                    dy = 0;
+                    break;
+                case 'a':
+                case 'd':
+                    dx = 0;
+                    break;
+            }
+            // Si no se está moviendo, volver a la animación de idle
+            if (dx === 0 && dy === 0) {
+                changeAnimation(idleAnimation); // Cambiar a la animación idle
+            }
+        }
+
+        // Crear enemigos
+        const enemies = [];
+        const enemySpeed = 0.2;
+
+        function createEnemy() {
+            const enemy = {
+                sprite: new PIXI.Graphics(),
+                x: Math.random() * app.screen.width,
+                y: Math.random() * app.screen.height,
+                radius: 10,
+                speed: enemySpeed,
+                dx: 0,
+                dy: 0
+            };
+            enemy.sprite.beginFill(0xFF0000); // Rojo para los enemigos
+            enemy.sprite.drawCircle(0, 0, enemy.radius);
+            enemy.sprite.endFill();
+            enemy.sprite.x = enemy.x;
+            enemy.sprite.y = enemy.y;
+            app.stage.addChild(enemy.sprite);
+            enemies.push(enemy);
+        }
+
+        function moveEnemies() {
+            enemies.forEach(enemy => {
+                const dx = player.x - enemy.x;
+                const dy = player.y - enemy.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance > 0) {
+                    enemy.dx = (dx / distance) * enemy.speed;
+                    enemy.dy = (dy / distance) * enemy.speed;
+
+                    enemy.x += enemy.dx;
+                    enemy.y += enemy.dy;
+
+                    enemy.sprite.x = enemy.x;
+                    enemy.sprite.y = enemy.y;
+
+                    // Evitar que el enemigo salga de los límites
+                    if (enemy.x < enemy.radius) enemy.x = enemy.radius;
+                    if (enemy.x > app.screen.width - enemy.radius) enemy.x = app.screen.width - enemy.radius;
+                    if (enemy.y < enemy.radius) enemy.y = enemy.radius;
+                    if (enemy.y > app.screen.height - enemy.radius) enemy.y = app.screen.height - enemy.radius;
+                }
+            });
+        }
+
+        function checkPlayerCollision() {
+            enemies.forEach(enemy => {
+                const distance = Math.sqrt(
+                    (player.x - enemy.x) ** 2 + (player.y - enemy.y) ** 2
+                );
+                if (distance < 10 + enemy.radius) { // Ajustar si es necesario
+                    player.alive = false;
+                    alert("¡Colisión con un enemigo! El juego ha terminado.");
+                    document.location.reload();
+                }
+            });
+        }
+
+        // Crear monedas
+        const coins = [];
+        const coinsToWin = 5;
+
+        function createCoin() {
+            const coin = new Coin(
+                Math.random() * (app.screen.width - 20),
+                Math.random() * (app.screen.height - 20),
+                10 // Radio de la moneda
+            );
+            coin.addToStage(app.stage);
+            coins.push(coin);
+        }
+
+        function collectCoins() {
+            coins.forEach(coin => {
+                if (coin.checkCollision(player)) {
+                    score = score + 1;
+                    if (score >= coinsToWin) {
+                        alert("¡Has ganado! Has recogido 5 monedas.");
+                        document.location.reload();
+                    }
+                    // Eliminar la moneda del escenario y del array
+                    app.stage.removeChild(coin.sprite);
+                    coins.splice(coins.indexOf(coin), 1);
+                    console.log(score);
+                    console.log(coinsToWin);
+                }
+            });
+        }
+
+        // Crear enemigos y monedas
+        for (let i = 0; i < 5; i++) {
+            
+            createCoin();
+        }
+        for(let i = 0; i < 50; i++){
+            createEnemy();
+        }
+
+        // Actualizar el juego en cada frame
+        app.ticker.add(() => {
+            if (player.alive !== false) {
+                player.x += dx;
+                player.y += dy;
+
+                // Imprimir valores para depuración
+                //console.log(`Player position: (${player.x}, ${player.y}), Movement: (${dx}, ${dy})`);
+
+                // Evitar que el jugador salga de los límites
+                if (player.x < 0) player.x = 0;
+                if (player.x > app.screen.width) player.x = app.screen.width;
+                if (player.y < 0) player.y = 0;
+                if (player.y > app.screen.height) player.y = app.screen.height;
+
+                moveEnemies();
+                checkPlayerCollision();
+                collectCoins();
+            }
+        });
+
+        // Escuchar eventos del teclado
+        document.addEventListener('keydown', handleKeyDown);
+        document.addEventListener('keyup', handleKeyUp);
+    }
+});
