@@ -1,10 +1,12 @@
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', function() {
     const app = new PIXI.Application({
         width: 1200,
         height: 800,
         backgroundColor: 0x000000
     });
     document.body.appendChild(app.view);
+
+    
 
     const loader = new PIXI.Loader();
     loader
@@ -27,6 +29,14 @@ document.addEventListener('DOMContentLoaded', function () {
         .add('left_1', './img/left_1.png')
         .add('right_0', './img/right_0.png')
         .add('right_1', './img/right_1.png')
+        .add('companion_0', './img/companion/companion0.png')        
+        .add('companion_1', './img/companion/companion1.png')        
+        .add('companion_2', './img/companion/companion2.png')       
+        .add('companion_3', './img/companion/companion3.png')        
+        .add('companion_4', './img/companion/companion4.png')        
+        .add('companion_5', './img/companion/companion5.png')        
+        .add('companion_6', './img/companion/companion6.png')        
+        .add('companion_7', './img/companion/companion7.png')
         .load(setup);
 
     function setup(loader, resources) {
@@ -65,24 +75,43 @@ document.addEventListener('DOMContentLoaded', function () {
             PIXI.Texture.from(resources.right_1.url),
         ];
 
+        const companionTextures = [
+            PIXI.Texture.from(resources.companion_0.url),
+            PIXI.Texture.from(resources.companion_1.url),
+            PIXI.Texture.from(resources.companion_2.url),
+            PIXI.Texture.from(resources.companion_3.url),
+            PIXI.Texture.from(resources.companion_4.url),
+            PIXI.Texture.from(resources.companion_5.url),
+            PIXI.Texture.from(resources.companion_6.url),
+            PIXI.Texture.from(resources.companion_7.url),
+        ];
+
         // Crear las animaciones usando AnimatedSprite
         const idleAnimation = new PIXI.AnimatedSprite(idleTextures);
         const upAnimation = new PIXI.AnimatedSprite(upTextures);
         const downAnimation = new PIXI.AnimatedSprite(downTextures);
         const leftAnimation = new PIXI.AnimatedSprite(leftTextures);
         const rightAnimation = new PIXI.AnimatedSprite(rightTextures);
+        const companionAnimation = new PIXI.AnimatedSprite(companionTextures);
 
         // Configuración inicial del jugador (idle por defecto)
         let player = idleAnimation;
+        let companion = companionAnimation
         score = 0;
         life = 999999;
         invencible = false;
         player.x = app.screen.width / 2;
         player.y = app.screen.height / 2;
         player.anchor.set(0.5);
+        companion.anchor.set(0.5);
+        companion.x=player.x-15;
+        companion.y=player.y-15;
         player.animationSpeed = 0.2; // Velocidad de la animación
+        companion.animationSpeed = 0.08;
         player.play(); // Reproduce la animación
-        app.stage.addChild(player);
+        companion.play();
+        app.stage.addChild(player);//agrego personaje y compañero
+        app.stage.addChild(companion);
 
         // Variables para el movimiento
         let dx = 0;
@@ -99,7 +128,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 newAnimation.x = player.x; // Mantener la posición actual
                 newAnimation.y = player.y; // Mantener la posición actual
                 newAnimation.anchor.set(0.5);
-                newAnimation.animationSpeed = 0.1; // Ajustar según la velocidad deseada
+                newAnimation.animationSpeed = 0.2; // Ajustar según la velocidad deseada
                 newAnimation.play(); // Reproduce la nueva animación
                 app.stage.addChild(newAnimation); // Añadir al escenario
 
@@ -205,9 +234,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 );
                 if (distance < 10 + enemy.radius && !invencible) { // Ajustar si es necesario
                     if(life < 1){
-                        player.alive = false;
-                        alert("¡Colisión con un enemigo! El juego ha terminado.");
-                        document.location.reload();
+                    player.alive = false;
+                    alert("¡Colisión con un enemigo! El juego ha terminado.");
+                    document.location.reload();
                     }else{
                         life--;
                         invencible = true;
@@ -279,11 +308,20 @@ document.addEventListener('DOMContentLoaded', function () {
             createEnemy();
         }
 
+        function companionBounce(frame){
+            companion.x += dx;
+            companion.y += Math.sin(frame)/4+dy;
+        }
+        let frameCounter = 0
         // Actualizar el juego en cada frame
         app.ticker.add(() => {
-            if (player.alive !== false) {
+            if (!player.alive) {
+                frameCounter+=0.05;
                 player.x += dx;
                 player.y += dy;
+                //companion.x += dx;
+                //companion.y += dy;
+
 
                 // Evitar que el jugador salga de los límites
                 if (player.x < 0) player.x = 0;
@@ -295,6 +333,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 checkPlayerCollision();
                 collectCoins();
                 updateExplosion(player.x,player.y); // Actualizar la explosión
+                companionBounce(frameCounter);
             }
         });
 
