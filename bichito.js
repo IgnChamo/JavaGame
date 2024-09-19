@@ -357,5 +357,6 @@ document.addEventListener('DOMContentLoaded', function() {
         // Escuchar eventos del teclado
         document.addEventListener('keydown', handleKeyDown);
         document.addEventListener('keyup', handleKeyUp);
+        //document.addEventListener('mousedown', shootBullet);
     }
 });

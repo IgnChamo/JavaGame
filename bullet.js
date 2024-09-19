@@ -1,27 +1,30 @@
-let bullets = [] //array of bullets in play
-let bulletSpeed = 10
-function fireBullet(e, x, y){
-    console.log("fire!")
-    let position = e.data.global;
-    let originX = position.x
-    let originY = position.y
-    console.log(originX + " - " + originY);
-    let bullet = createBullet(objetiveX,objetiveY,x,y);
-    bullets.push(bullet);
-}
+class Bullet {
+    constructor(originX,originY,clickX,clickY, speed){
+        this.oX=originX //Punto de origen
+        this.oY=originY
+        this.cX=clickX //Punto de disparo
+        this.cY=clickY
+        this.speed=speed //Velocidad del disparo
+        this.positionX=originX //La posicion real, se actualiza por cada frame pero en creacion aparece en el punto de origen
+        this.positionY=originY
+        this.shootVectorX=clickX-originX
+        this.shootVectorY=clickY-originY
+        this.velocityX=this.shootVectorX*speed
+        this.velocityY=this.shootVectorY*speed
+    }
 
-function createBullet(obX,obY, originX, originY){
-    let bullet = new PIXI.Sprite.from("./img/bullet/bullet.png"); 
-    bullet.anchor.set(0.5)
-    bullet.x=originX;
-    bullet.y=originY;
-    bullet.speed=bulletSpeed;
-    app.stage.addChild();
-}
+    pythegoras(){
+        return Math.sqrt(Math.pow(shootVectorX)+Math.pow(this.shootVectorY))
+    }
 
+    normalize(){
+        this.shootVectorX = this.shootVectorX/this.pythegoras()
+        this.shootVectorY = this.shootVectorY/this.pythegoras()
+    }
 
-
-function gameLoop(deltaTime){
-
+    positionUpdate(deltaTime){
+        this.positionX += deltaTime*this.velocityX
+        this.positionY += deltaTime*this.velocityY
+    }
 }
 
