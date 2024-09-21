@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const app = new PIXI.Application({
         width: 1200,
         height: 800,
@@ -6,10 +6,10 @@ document.addEventListener('DOMContentLoaded', function() {
         cursor: 'none'
     });
 
-    
+
     document.body.appendChild(app.view);
 
-    
+
 
     const loader = new PIXI.Loader();
     loader
@@ -32,13 +32,13 @@ document.addEventListener('DOMContentLoaded', function() {
         .add('left_1', './img/left_1.png')
         .add('right_0', './img/right_0.png')
         .add('right_1', './img/right_1.png')
-        .add('companion_0', './img/companion/companion0.png')        
-        .add('companion_1', './img/companion/companion1.png')        
-        .add('companion_2', './img/companion/companion2.png')       
-        .add('companion_3', './img/companion/companion3.png')        
-        .add('companion_4', './img/companion/companion4.png')        
-        .add('companion_5', './img/companion/companion5.png')        
-        .add('companion_6', './img/companion/companion6.png')        
+        .add('companion_0', './img/companion/companion0.png')
+        .add('companion_1', './img/companion/companion1.png')
+        .add('companion_2', './img/companion/companion2.png')
+        .add('companion_3', './img/companion/companion3.png')
+        .add('companion_4', './img/companion/companion4.png')
+        .add('companion_5', './img/companion/companion5.png')
+        .add('companion_6', './img/companion/companion6.png')
         .add('companion_7', './img/companion/companion7.png')
         .load(setup);
 
@@ -100,7 +100,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Configuración inicial del jugador (idle por defecto)
         let player = idleAnimation;
         let companion = companionAnimation
-        let crossair =PIXI.Sprite.from('./img/Crossair/Crossair.png');
+        let crossair = PIXI.Sprite.from('./img/Crossair/Crossair.png');
         score = 0;
         life = 999999;
         invencible = false;
@@ -109,8 +109,8 @@ document.addEventListener('DOMContentLoaded', function() {
         player.anchor.set(0.5);
         companion.anchor.set(0.5);
         crossair.anchor.set(0.5);
-        companion.x=player.x-15;
-        companion.y=player.y-15;
+        companion.x = player.x - 10;
+        companion.y = player.y - 10;
         player.animationSpeed = 0.2; // Velocidad de la animación
         companion.animationSpeed = 0.08;
         player.play(); // Reproduce la animación
@@ -122,10 +122,10 @@ document.addEventListener('DOMContentLoaded', function() {
         //add crossair
 
         // Enable interactivity!
-        app.stage.interactive =true;
+        app.stage.interactive = true;
 
-        app.stage.on("pointermove",moveCrossair);
-        
+        app.stage.on("pointermove", moveCrossair);
+
         // Variables para el movimiento
         let dx = 0;
         let dy = 0;
@@ -133,10 +133,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
         //crossair control
 
-        function moveCrossair(e){
+        function moveCrossair(e) {
             let position = e.data.global //e contiene toda la infodel evento de movimiento de cursor
-            crossair.x=position.x;
-            crossair.y=position.y;
+            crossair.x = position.x;
+            crossair.y = position.y;
         }
         // Cambiar la animación según la dirección
         function changeAnimation(newAnimation) {
@@ -253,11 +253,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     (player.x - enemy.x) ** 2 + (player.y - enemy.y) ** 2
                 );
                 if (distance < 10 + enemy.radius && !invencible) { // Ajustar si es necesario
-                    if(life < 1){
-                    player.alive = false;
-                    alert("¡Colisión con un enemigo! El juego ha terminado.");
-                    document.location.reload();
-                    }else{
+                    if (life < 1) {
+                        player.alive = false;
+                        alert("¡Colisión con un enemigo! El juego ha terminado.");
+                        document.location.reload();
+                    } else {
                         life--;
                         invencible = true;
                         // Iniciar la explosión
@@ -268,15 +268,14 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
 
-        function updateExplosion(x,y) {
+        function updateExplosion(x, y) {
             const radio = 100;
             if (isExploding) {
                 const elapsedTime = Date.now() - explosionStartTime;
                 if (elapsedTime < explosionDuration) {
                     // Durante la explosión
                     enemies.forEach(enemy => {
-                        if(Math.abs(enemy.x - x) < radio && Math.abs(enemy.y - y) < radio)
-                            {enemy.speed = -1;} // Velocidad negativa durante la explosión
+                        if (Math.abs(enemy.x - x) < radio && Math.abs(enemy.y - y) < radio) { enemy.speed = -1; } // Velocidad negativa durante la explosión
                     });
                 } else {
                     // Después de la explosión
@@ -328,15 +327,24 @@ document.addEventListener('DOMContentLoaded', function() {
             createEnemy();
         }
 
-        function companionBounce(frame){
+        /*function companionBounce(frame){
             companion.x += dx;
             companion.y += Math.sin(frame)/4+dy;
+        }*/
+        function companionBounce(frame) { //hace que el compañero gire al rededor del Player
+            const radius = 20; // Radio
+            const speed = 0.1; //Velocidad
+
+            // Calcular la nueva posición usando trigonometría (gracias chatgpt)
+            const angle = frame * speed;
+            companion.x = player.x + Math.cos(angle) * radius;
+            companion.y = player.y + Math.sin(angle) * radius;
         }
         let frameCounter = 0
         // Actualizar el juego en cada frame
         app.ticker.add(() => {
             if (!player.alive) {
-                frameCounter+=0.05;
+                frameCounter += 0.05;
                 player.x += dx;
                 player.y += dy;
 
@@ -349,7 +357,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 moveEnemies();
                 checkPlayerCollision();
                 collectCoins();
-                updateExplosion(player.x,player.y); // Actualizar la explosión
+                updateExplosion(player.x, player.y); // Actualizar la explosión
                 companionBounce(frameCounter);
             }
         });
@@ -357,6 +365,6 @@ document.addEventListener('DOMContentLoaded', function() {
         // Escuchar eventos del teclado
         document.addEventListener('keydown', handleKeyDown);
         document.addEventListener('keyup', handleKeyUp);
-        //document.addEventListener('mousedown', shootBullet);
+        //document.addEventListener('mousedown', shootBullet)
     }
 });
