@@ -1,81 +1,59 @@
+
 class Bullet {
-    constructor(originX, originY, clickX, clickY, speed) {
-        this.oX = originX; // Punto de origen
+    constructor(app, originX, originY, targetX, targetY, speed) {
+        this.app = app;
+        this.oX = originX;
         this.oY = originY;
-        this.cX = clickX; // Punto de disparo
-        this.cY = clickY;
-        this.speed = speed; // Velocidad del disparo
-        this.positionX = originX; // La posición real, se actualiza por cada frame pero en creación aparece en el punto de origen
+        this.targetX = targetX;
+        this.targetY = targetY;
+        this.speed = speed;
+
+        this.positionX = originX;
         this.positionY = originY;
-        this.shootVectorX = clickX - originX;
-        this.shootVectorY = clickY - originY;
+
+        this.shootVectorX = targetX - originX;
+        this.shootVectorY = targetY - originY;
+
         this.normalize();
+
         this.velocityX = this.shootVectorX * this.speed;
         this.velocityY = this.shootVectorY * this.speed;
-    }
 
-    // Calcula la distancia
-    pythegoras() {
-        return Math.sqrt(Math.pow(this.shootVectorX, 2) + Math.pow(this.shootVectorY, 2));
+        // Crear la bala como un círculo en PIXI
+        this.sprite = new PIXI.Graphics();
+        this.sprite.beginFill(0xFF0000); // Color rojo
+        this.sprite.drawCircle(0, 0, 5); // Radio de 5 píxeles
+        this.sprite.endFill();
+        this.sprite.x = this.positionX;
+        this.sprite.y = this.positionY;
+        this.isAlive = true;
+        // Agregar la bala al escenario usando la instancia de app
+        this.app.stage.addChild(this.sprite);
     }
 
     // Normaliza el vector de dirección
     normalize() {
-        const magnitude = this.pythegoras();
-        this.shootVectorX = this.shootVectorX / magnitude;
-        this.shootVectorY = this.shootVectorY / magnitude;
+        const magnitude = Math.sqrt(this.shootVectorX * this.shootVectorX + this.shootVectorY * this.shootVectorY);
+        this.shootVectorX /= magnitude;
+        this.shootVectorY /= magnitude;
     }
 
     // Actualiza la posición de la bala
-    positionUpdate(deltaTime) {
-        this.positionX += deltaTime * this.velocityX;
-        this.positionY += deltaTime * this.velocityY;
-    }
+    update(deltaTime = 1) {
+        if (!this.isAlive) return;
+        const distance = deltaTime * this.speed;
 
-    // Dibuja la bala (si tienes un contexto gráfico)
-    draw(context) {
-        context.beginPath();
-        context.arc(this.positionX, this.positionY, 5, 0, Math.PI * 2);
-        context.fillStyle = 'red';
-        context.fill();
-        context.closePath();
+        // Actualiza las posiciones en función de la velocidad
+        this.positionX += distance * this.velocityX;
+        this.positionY += distance * this.velocityY;
+
+        this.sprite.x = this.positionX;
+        this.sprite.y = this.positionY;
+
+        /*if (this.sprite.x <= 0 || this.sprite.x >= 1200 || this.sprite.y <= 0 || this.sprite.y >= 800) {
+            this.isAlive = false;
+            this.app.stage.removeChild(this.sprite); // Elimina la bala del escenario
+            
+        }*/
     }
 }
-
-// Array para almacenar las balas
-const bullets = [];
-const speed = 0.1; // Velocidad de la bala
-
-// Canvas para dibujar las balas
-const canvas = document.getElementById('gameCanvas');
-const context = canvas.getContext('2d');
-
-// Posición de origen del disparo (por ejemplo, el centro de la pantalla)
-const originX = canvas.width / 2;
-const originY = canvas.height / 2;
-
-// Evento para disparar una bala al hacer clic
-canvas.addEventListener('click', (event) => {
-    const clickX = event.clientX;
-    const clickY = event.clientY;
-
-    // Crea una nueva bala
-    const bullet = new Bullet(originX, originY, clickX, clickY, speed);
-    bullets.push(bullet);
-});
-
-// Función para actualizar el juego
-function update(deltaTime) {
-    context.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Actualiza la posición de cada bala
-    bullets.forEach((bullet) => {
-        bullet.positionUpdate(deltaTime);
-        bullet.draw(context); // Dibuja la bala
-    });
-
-    requestAnimationFrame(() => update(deltaTime));
-}
-
-// Iniciar el juego
-update(0.016); // Aproximadamente 60 fps

@@ -125,6 +125,27 @@ document.addEventListener('DOMContentLoaded', function () {
         app.stage.interactive = true;
 
         app.stage.on("pointermove", moveCrossair);
+        // Escuchar el clic izquierdo para disparar una bala
+        app.stage.on("pointerdown", shootBulletOnClick);
+        const bullets = [];
+
+        function shootBulletOnClick(e) {
+            if(bullets.length < 5){
+            // Obtener la posición actual del crossair (donde está apuntando el ratón)
+            const targetX = crossair.x;
+            const targetY = crossair.y;
+
+            // Disparar una bala desde la posición del player hacia el cursor
+            shootBulletFromCompanion(app, player, targetX, targetY);
+            }
+        }
+
+        // Función para disparar una bala desde el player
+        function shootBulletFromCompanion(app, player, targetX, targetY) {
+            const speed = 1; // Ajusta la velocidad si es necesario
+            const bullet = new Bullet(app, player.x, player.y, targetX, targetY, speed);
+            bullets.push(bullet);
+        }
 
         // Variables para el movimiento
         let dx = 0;
@@ -343,6 +364,8 @@ document.addEventListener('DOMContentLoaded', function () {
         let frameCounter = 0
         // Actualizar el juego en cada frame
         app.ticker.add(() => {
+            const fixedDelta = 1;
+            
             if (!player.alive) {
                 frameCounter += 0.05;
                 player.x += dx;
@@ -360,6 +383,16 @@ document.addEventListener('DOMContentLoaded', function () {
                 updateExplosion(player.x, player.y); // Actualizar la explosión
                 companionBounce(frameCounter);
             }
+            //console.log("Delta:", delta);
+
+            bullets.forEach((bullet, index) => {
+                bullet.update(fixedDelta);
+                if (bullet.positionX < 0 || bullet.positionX > app.screen.width || bullet.positionY < 0 || bullet.positionY > app.screen.height) {
+                    bullet.sprite.destroy();
+                    bullets.splice(index, 1); // Remueve la bala del array
+                }
+               console.log("Cant balas", bullets.length)
+            });
         });
 
         // Escuchar eventos del teclado
