@@ -112,7 +112,7 @@ document.addEventListener('DOMContentLoaded', function () {
         companion.x = player.x - 10;
         companion.y = player.y - 10;
         player.animationSpeed = 0.2; // Velocidad de la animación
-        companion.animationSpeed = 0.08;
+        companion.animationSpeed = 0.1;
         player.play(); // Reproduce la animación
         companion.play();
         app.stage.addChild(player);//agrego personaje y compañero
@@ -130,13 +130,13 @@ document.addEventListener('DOMContentLoaded', function () {
         const bullets = [];
 
         function shootBulletOnClick(e) {
-            if(bullets.length < 5){
-            // Obtener la posición actual del crossair (donde está apuntando el ratón)
-            const targetX = crossair.x;
-            const targetY = crossair.y;
+            if (bullets.length < 5) {
+                // Obtener la posición actual del crossair (donde está apuntando el ratón)
+                const targetX = crossair.x;
+                const targetY = crossair.y;
 
-            // Disparar una bala desde la posición del player hacia el cursor
-            shootBulletFromCompanion(app, player, targetX, targetY);
+                // Disparar una bala desde la posición del player hacia el cursor
+                shootBulletFromCompanion(app, player, targetX, targetY);
             }
         }
 
@@ -220,6 +220,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // Crear enemigos
         const enemies = [];
         let enemySpeed = 0.2;
+        let enemySpeedOrig = 0.2;
         let explosionStartTime = null;
         const explosionDuration = 250; // Duración de la explosión en milisegundos
         let isExploding = false;
@@ -256,14 +257,36 @@ document.addEventListener('DOMContentLoaded', function () {
                     enemy.x += enemy.dx;
                     enemy.y += enemy.dy;
 
-                    enemy.sprite.x = enemy.x;
-                    enemy.sprite.y = enemy.y;
 
                     // Evitar que el enemigo salga de los límites
                     if (enemy.x < enemy.radius) enemy.x = enemy.radius;
                     if (enemy.x > app.screen.width - enemy.radius) enemy.x = app.screen.width - enemy.radius;
                     if (enemy.y < enemy.radius) enemy.y = enemy.radius;
                     if (enemy.y > app.screen.height - enemy.radius) enemy.y = app.screen.height - enemy.radius;
+
+                    enemies.forEach(otherEnemy => {
+                        if (otherEnemy !== enemy) {
+                            const collisionDistance = enemy.radius + otherEnemy.radius;
+                            const dx = enemy.x - otherEnemy.x;
+                            const dy = enemy.y - otherEnemy.y;
+                            const distance = Math.sqrt(dx * dx + dy * dy);
+
+                            if (distance < collisionDistance) {
+                                // Ajustar la posición del enemigo en colisión
+                                const angle = Math.atan2(dy, dx);
+                                const overlap = collisionDistance - distance;
+
+                                // Desplazar el enemigo en dirección opuesta
+                                enemy.x += Math.cos(angle) * overlap / 2;
+                                enemy.y += Math.sin(angle) * overlap / 2;
+                            }
+                        }
+                    });
+
+                    enemy.sprite.x = enemy.x;
+                    enemy.sprite.y = enemy.y;
+
+
                 }
             });
         }
@@ -273,25 +296,30 @@ document.addEventListener('DOMContentLoaded', function () {
                     const dx = bullet.positionX - enemy.x;
                     const dy = bullet.positionY - enemy.y;
                     const distance = Math.sqrt(dx * dx + dy * dy);
-        
+
                     // Verifica si la distancia es menor que la suma de los radios
                     if (distance < bullet.radius + enemy.radius) {
-                        // Colisión detectada
+
+                        enemy.sprite.destroy(); // Elimina el enemigo
+                        enemies.splice(enemyIndex, 1); // Remueve el enemigo del array
+                        enemies.forEach(enemy => {
+                            enemy.speed += 0.1;
+                        });
+
                         bullet.isAlive = false; // Marca la bala como no viva
                         bullet.sprite.destroy(); // Elimina la bala
                         bullets.splice(bulletIndex, 1); // Remueve la bala del array
-        
-                        // Elimina el enemigo o actualiza su estado
-                        enemy.sprite.destroy(); // Elimina el enemigo
-                        enemies.splice(enemyIndex, 1); // Remueve el enemigo del array
+
+
                         console.log("¡Colisión detectada!");
                     }
+
                 });
             });
         }
-        
-        
-        
+
+
+
         function checkPlayerCollision() {
             enemies.forEach(enemy => {
                 const distance = Math.sqrt(
@@ -325,7 +353,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 } else {
                     // Después de la explosión
                     enemies.forEach(enemy => {
-                        enemy.speed = 0.2; // Velocidad positiva después de la explosión
+                        enemy.speed = enemySpeedOrig; // Velocidad positiva después de la explosión
                     });
                     isExploding = false;
                     invencible = false;
@@ -389,7 +417,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // Actualizar el juego en cada frame
         app.ticker.add(() => {
             const fixedDelta = 1;
-            
+
             if (!player.alive) {
                 frameCounter += 0.05;
                 player.x += dx;
@@ -415,7 +443,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     bullet.sprite.destroy();
                     bullets.splice(index, 1); // Remueve la bala del array
                 }
-               console.log("Cant balas", bullets.length)
+                console.log("Cant balas", bullets.length)
             });
             checkEnemyCollision(bullets, enemies);
         });
