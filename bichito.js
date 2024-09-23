@@ -136,14 +136,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 const targetY = crossair.y;
 
                 // Disparar una bala desde la posición del player hacia el cursor
-                shootBulletFromCompanion(app, player, targetX, targetY);
+                shootBulletFromCompanion(app, companion, targetX, targetY);
             }
         }
 
         // Función para disparar una bala desde el player
         function shootBulletFromCompanion(app, player, targetX, targetY) {
             const speed = 1; // Ajusta la velocidad si es necesario
-            const bullet = new Bullet(app, player.x, player.y, targetX, targetY, speed);
+            const bullet = new Bullet(app, companion.x, companion.y, targetX, targetY, speed);
             bullets.push(bullet);
         }
 
