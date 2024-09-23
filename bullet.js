@@ -7,6 +7,7 @@ class Bullet {
         this.targetX = targetX;
         this.targetY = targetY;
         this.speed = speed;
+        this.radius = 5;
 
         this.positionX = originX;
         this.positionY = originY;

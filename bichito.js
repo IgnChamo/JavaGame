@@ -267,7 +267,31 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             });
         }
-
+        function checkEnemyCollision(bullets, enemies) {
+            bullets.forEach((bullet, bulletIndex) => {
+                enemies.forEach((enemy, enemyIndex) => {
+                    const dx = bullet.positionX - enemy.x;
+                    const dy = bullet.positionY - enemy.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+        
+                    // Verifica si la distancia es menor que la suma de los radios
+                    if (distance < bullet.radius + enemy.radius) {
+                        // Colisión detectada
+                        bullet.isAlive = false; // Marca la bala como no viva
+                        bullet.sprite.destroy(); // Elimina la bala
+                        bullets.splice(bulletIndex, 1); // Remueve la bala del array
+        
+                        // Elimina el enemigo o actualiza su estado
+                        enemy.sprite.destroy(); // Elimina el enemigo
+                        enemies.splice(enemyIndex, 1); // Remueve el enemigo del array
+                        console.log("¡Colisión detectada!");
+                    }
+                });
+            });
+        }
+        
+        
+        
         function checkPlayerCollision() {
             enemies.forEach(enemy => {
                 const distance = Math.sqrt(
@@ -393,6 +417,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
                console.log("Cant balas", bullets.length)
             });
+            checkEnemyCollision(bullets, enemies);
         });
 
         // Escuchar eventos del teclado
