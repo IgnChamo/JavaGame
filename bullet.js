@@ -22,7 +22,7 @@ class Bullet {
 
         // Crear la bala como un círculo en PIXI
         this.sprite = new PIXI.Graphics();
-        this.sprite.beginFill(0xFF0000); // Color rojo
+        this.sprite.beginFill(0xFFFFFF); // Color rojo
         this.sprite.drawCircle(0, 0, 5); // Radio de 5 píxeles
         this.sprite.endFill();
         this.sprite.x = this.positionX;

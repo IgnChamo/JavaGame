@@ -221,6 +221,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const enemies = [];
         let enemySpeed = 0.2;
         let enemySpeedOrig = 0.2;
+        let aceleracion = 0.2;
         let explosionStartTime = null;
         const explosionDuration = 250; // Duración de la explosión en milisegundos
         let isExploding = false;
@@ -291,31 +292,65 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         }
         function checkEnemyCollision(bullets, enemies) {
+            const bulletsColisionadas = new Set();
+            const enemiesColisionados = new Set();
+
             bullets.forEach((bullet, bulletIndex) => {
                 enemies.forEach((enemy, enemyIndex) => {
                     const dx = bullet.positionX - enemy.x;
                     const dy = bullet.positionY - enemy.y;
                     const distance = Math.sqrt(dx * dx + dy * dy);
 
-                    // Verifica si la distancia es menor que la suma de los radios
                     if (distance < bullet.radius + enemy.radius) {
+                        bulletsColisionadas.add(bulletIndex);
+                        enemiesColisionados.add(enemyIndex);
 
-                        enemy.sprite.destroy(); // Elimina el enemigo
-                        enemies.splice(enemyIndex, 1); // Remueve el enemigo del array
+                        console.log("¡Colisiono PAPAAA!");
                         enemies.forEach(enemy => {
-                            enemy.speed += 0.1;
+                            enemy.speed += 0.1; // Velocidad positiva después de la explosión
                         });
-
-                        bullet.isAlive = false; // Marca la bala como no viva
-                        bullet.sprite.destroy(); // Elimina la bala
-                        bullets.splice(bulletIndex, 1); // Remueve la bala del array
-
-
-                        console.log("¡Colisión detectada!");
                     }
 
                 });
             });
+
+            /*bulletsColisionadas.forEach(bulletIndex => {
+                if(bulletIndex != null){
+                bullets[bulletIndex].sprite.destroy();
+                bullets.splice(bulletIndex, 1);
+                }
+            });
+        
+            enemiesColisionados.forEach(enemyIndex => {
+                if(enemyIndex != null){
+                enemies[enemyIndex].sprite.destroy();
+                enemies.splice(enemyIndex, 1);
+                }
+            });*/
+
+
+            //Chat gpt sabe cosas, primero borra los sprites del canvas y aparte los saca del set generado arriba. Se genera un set porque al eliminar con array si colisionas con dos balas a dos enemigos
+            //quiere borrar un mismo index dos veces y se rompe
+
+            
+            bulletsColisionadas.forEach(bulletIndex => {
+                bullets[bulletIndex].sprite.destroy();
+            });
+
+            enemiesColisionados.forEach(enemyIndex => {
+                enemies[enemyIndex].sprite.destroy();
+            });
+
+            // Elimina balas y enemigos del array en orden inverso para evitar problemas de índices
+
+            Array.from(bulletsColisionadas).sort((a, b) => b - a).forEach(bulletIndex => {
+                bullets.splice(bulletIndex, 1);
+            });
+
+            Array.from(enemiesColisionados).sort((a, b) => b - a).forEach(enemyIndex => {
+                enemies.splice(enemyIndex, 1);
+            });
+
         }
 
 
