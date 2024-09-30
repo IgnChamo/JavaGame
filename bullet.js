@@ -58,3 +58,15 @@ class Bullet {
         }*/
     }
 }
+
+function shootBullet(companion, crossair, app, event){
+    const speed = 1;
+    if(bullets.length<5){
+        const targetX = crossair.x;
+        const targetY = crossair.y;
+        const originX = companion.x;
+        const originY = companion.y;
+        const bullet = new Bullet(app, originX, originY, targetX, targetX, 1)
+        bullets.push(bullet)
+    }
+}
